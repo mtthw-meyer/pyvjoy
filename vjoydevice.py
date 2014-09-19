@@ -57,8 +57,8 @@ class vJoyDevice:
       HID_USAGE_RX: 'wAxisXRot',
       HID_USAGE_RY: 'wAxisYRot',
       HID_USAGE_RZ: 'wAxisZRot',
-      HID_USAGE_SL0: 'wThrottle',
-      HID_USAGE_SL1: 'wSlider',
+      HID_USAGE_SL0: 'wSlider',
+      HID_USAGE_SL1: 'wDial',
    }
 
    #define HID_USAGE_WHL	0x38

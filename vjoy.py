@@ -23,11 +23,11 @@ class vJoy:
    _devices = dict()
 
    def __init__(self):
-      '''# Setup interface to the vJoy library
+      # Setup interface to the vJoy library
       try:
-         cdll.vJoyInterface = cdll.vJoyInterface
+         cdll.vJoyInterface
       except OSError:
-         raise vJoyError('Failed to load the vJoy library(dll) file')'''
+         raise vJoyError('Failed to load the vJoy library(dll) file')
       
       # Check if a vJoy device is present
       if not cdll.vJoyInterface.vJoyEnabled():
@@ -81,6 +81,9 @@ if __name__ == '__main__':
    print 'Trying to load device %s...' % device
    vjoy_1 = vjoy.acquire_device(device)
    print 'Loaded device %s!' % vjoy_1
+   sleep(2)
+   vjoy_1.set_axis(HID_USAGE_SL1, 0)
+   sleep(2)
    vjoy.relinquish_device(device)
    print 'Tests passed!'
    print 'Exiting...'
