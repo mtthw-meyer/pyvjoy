@@ -109,6 +109,9 @@ class vJoyDevice:
 
    def get_axis_max(self, HID):
       return self._axes[HID]['max']
+      
+   def get_axis_center(self, HID):
+      return self._axes[HID]['center']
 
    def update(self):
       #VJOYINTERFACE_API BOOL		__cdecl	UpdateVJD(UINT rID, PVOID pData);	// Update the position data of the specified vJoy Device.
