@@ -63,10 +63,9 @@ class vJoyDevice:
 
    #define HID_USAGE_WHL	0x38
    #define HID_USAGE_POV	0x39
-   _axes = dict()
 
-   def __init__(self, id):
-      #cdll.vJoyInterface = cdll.vJoyInterface
+   def __init__(self, vJoyInterace, id):
+      self._vJoyInterface = vJoyInterace
       self.id = id
       position_data = {
          'bDevice':  self.id,
@@ -80,15 +79,16 @@ class vJoyDevice:
       self.reset()
 
       # Get information about this device
-      self.button_count = cdll.vJoyInterface.GetVJDButtonNumber(self.id)
-      self.discrete_hats = cdll.vJoyInterface.GetVJDDiscPovNumber(self.id)
-      self.continuous_hats = cdll.vJoyInterface.GetVJDContPovNumber(self.id)
+      self.button_count = self._vJoyInterface.GetVJDButtonNumber(self.id)
+      self.discrete_hats = self._vJoyInterface.GetVJDDiscPovNumber(self.id)
+      self.continuous_hats = self._vJoyInterface.GetVJDContPovNumber(self.id)
+      self._axes = {}
       for HID, field in self._AXES.items():
-         if cdll.vJoyInterface.GetVJDAxisExist(self.id, HID):
+         if self._vJoyInterface.GetVJDAxisExist(self.id, HID):
             min = c_int()
             max = c_int()
-            cdll.vJoyInterface.GetVJDAxisMax(self.id, HID, pointer(min))
-            cdll.vJoyInterface.GetVJDAxisMin(self.id, HID, pointer(max))
+            self._vJoyInterface.GetVJDAxisMax(self.id, HID, pointer(min))
+            self._vJoyInterface.GetVJDAxisMin(self.id, HID, pointer(max))
             self._axes[HID] = {
                'min': min.value,
                'max': max.value,
@@ -104,21 +104,27 @@ class vJoyDevice:
          setattr(self.position, field, value)
       return
 
+   def get_axis_min(self, HID):
+      return self._axes[HID]['min']
+
+   def get_axis_max(self, HID):
+      return self._axes[HID]['max']
+
    def update(self):
       #VJOYINTERFACE_API BOOL		__cdecl	UpdateVJD(UINT rID, PVOID pData);	// Update the position data of the specified vJoy Device.
-      #cdll.vJoyInterface.UpdateVJD.restype = c_bool
-      return cdll.vJoyInterface.UpdateVJD(self.id, pointer(self.position))
+      #self._vJoyInterface.UpdateVJD.restype = c_bool
+      return self._vJoyInterface.UpdateVJD(self.id, pointer(self.position))
    
    def reset(self):
-      cdll.vJoyInterface.ResetVJD(self.id)
+      self._vJoyInterface.ResetVJD(self.id)
       return
 
    def reset_buttons(self):
-      cdll.vJoyInterface.ResetButtons(self.id)
+      self._vJoyInterface.ResetButtons(self.id)
       return
       
    def reset_povs(self):
-      cdll.vJoyInterface.ResetPovs(self.id)
+      self._vJoyInterface.ResetPovs(self.id)
       return
 
    def __str__(self):

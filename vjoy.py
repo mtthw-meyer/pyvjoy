@@ -2,6 +2,7 @@
 from ctypes import *
 from threading import Thread
 from time import sleep
+import os
 
 from vjoydevice import *
 
@@ -22,20 +23,20 @@ VjoyStatus = [
 class vJoy:
    _devices = dict()
 
-   def __init__(self):
+   def __init__(self, my_path):
       # Setup interface to the vJoy library
       try:
-         cdll.vJoyInterface
+         self._vJoyInterface = cdll.LoadLibrary(os.path.join(my_path, 'vJoyInterface'))
       except OSError:
          raise vJoyError('Failed to load the vJoy library(dll) file')
       
       # Check if a vJoy device is present
-      if not cdll.vJoyInterface.vJoyEnabled():
+      if not self._vJoyInterface.vJoyEnabled():
          raise  vJoyError('No vJoy device(s) enabled')
       else:
-         self.product = cast(cdll.vJoyInterface.GetvJoyProductString(), c_wchar_p).value
-         self.manufacturer = cast(cdll.vJoyInterface.GetvJoyManufacturerString(), c_wchar_p).value
-         self.serial = cast(cdll.vJoyInterface.GetvJoySerialNumberString(), c_wchar_p).value
+         self.product = cast(self._vJoyInterface.GetvJoyProductString(), c_wchar_p).value
+         self.manufacturer = cast(self._vJoyInterface.GetvJoyManufacturerString(), c_wchar_p).value
+         self.serial = cast(self._vJoyInterface.GetvJoySerialNumberString(), c_wchar_p).value
    
       self.vjoy_devices = dict()
       
@@ -59,16 +60,16 @@ class vJoy:
    def acquire_device(self, id):
       #VJOYINTERFACE_API BOOL		__cdecl	AcquireVJD(UINT rID);				// Acquire the specified vJoy Device.
       #vjoy_id = c_int(id)
-      status = cdll.vJoyInterface.GetVJDStatus(id)
+      status = self._vJoyInterface.GetVJDStatus(id)
       if VjoyStatus[status] == 'VJD_STAT_FREE':
-         if cdll.vJoyInterface.AcquireVJD(id):
-            self._devices[id] = vJoyDevice(id)
+         if self._vJoyInterface.AcquireVJD(id):
+            self._devices[id] = vJoyDevice(self._vJoyInterface, id)
       return self._devices.get(id, None)
 
    def relinquish_device(self, id):
       if id in self._devices:
          self._devices.pop(id)
-      cdll.vJoyInterface.RelinquishVJD(id)
+      self._vJoyInterface.RelinquishVJD(id)
 
 
 if __name__ == '__main__':
@@ -76,7 +77,7 @@ if __name__ == '__main__':
    import pdb
    device = int(sys.argv[1])
    print 'Loading driver...'
-   vjoy = vJoy()
+   vjoy = vJoy('')
    print 'Success!'
    print 'Trying to load device %s...' % device
    vjoy_1 = vjoy.acquire_device(device)
