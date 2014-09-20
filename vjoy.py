@@ -21,12 +21,14 @@ VjoyStatus = [
 
 
 class vJoy:
+   _vJoyInterface = None
    _devices = dict()
 
-   def __init__(self, my_path):
+   def __init__(self):
       # Setup interface to the vJoy library
       try:
-         self._vJoyInterface = cdll.LoadLibrary(os.path.join(my_path, 'vJoyInterface'))
+         if self._vJoyInterface is None:
+            self._vJoyInterface = cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), 'vJoyInterface'))
       except OSError:
          raise vJoyError('Failed to load the vJoy library(dll) file')
       
